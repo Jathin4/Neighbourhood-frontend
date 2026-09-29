@@ -52,6 +52,11 @@ class AdminRepository {
   Future<Map<String, dynamic>> assignCommitteeRole(int communityId, int targetUserId, List<String> capabilities) async =>
       await api.post('/admin/committee-roles', data: {'community_id': communityId, 'target_user_id': targetUserId, 'capabilities': capabilities}) as Map<String, dynamic>;
 
+  Future<List<Map<String, dynamic>>> listCommitteeMembers(int communityId) async {
+    final data = await api.get('/admin/committee-roles', query: {'community_id': communityId});
+    return (data as List).cast<Map<String, dynamic>>();
+  }
+
   Future<List<Map<String, dynamic>>> listIssues(int communityId, {String? status}) async {
     final data = await api.get('/admin/issues', query: {'community_id': communityId, if (status != null) 'status': status});
     return (data['items'] as List).cast<Map<String, dynamic>>();

@@ -7,12 +7,16 @@ import '../../features/auth/profile_setup_screen.dart';
 import '../../features/auth/community_match_screen.dart';
 import '../../features/auth/pending_screen.dart';
 import '../../features/resident/home_shell.dart';
+import '../../features/resident/chat/conversation_screen.dart';
 import '../../features/resident/directory/directory_screen.dart';
 import '../../features/resident/issues/issue_detail_screen.dart';
 import '../../features/resident/services/provider_list_screen.dart';
 import '../../features/resident/services/provider_profile_screen.dart';
 import '../../features/resident/bookings/booking_detail_screen.dart';
 import '../../features/resident/community/polls_events_screen.dart';
+import '../../features/resident/profile/change_phone_screen.dart';
+import '../../features/resident/profile/edit_profile_screen.dart';
+import '../../features/resident/profile/notification_preferences_screen.dart';
 import '../../features/provider/provider_home_screen.dart';
 import '../../features/provider/staff/staff_screen.dart';
 import '../../features/provider/availability/availability_screen.dart';
@@ -59,6 +63,16 @@ final appRouter = GoRouter(
     GoRoute(path: '/auth/pending', builder: (context, state) => const MembershipStatusScreen()),
     GoRoute(path: '/home', builder: (context, state) => const ResidentHomeShell()),
     GoRoute(path: '/directory', builder: (context, state) => const DirectoryScreen()),
+    GoRoute(
+      path: '/chat/:userId',
+      builder: (context, state) => ConversationScreen(
+        otherUserId: int.parse(state.pathParameters['userId']!),
+        otherName: state.uri.queryParameters['name'] ?? '',
+      ),
+    ),
+    GoRoute(path: '/profile/edit', builder: (context, state) => const EditProfileScreen()),
+    GoRoute(path: '/profile/change-phone', builder: (context, state) => const ChangePhoneScreen()),
+    GoRoute(path: '/profile/notification-preferences', builder: (context, state) => const NotificationPreferencesScreen()),
     GoRoute(
       path: '/issues/:ticketNo',
       builder: (context, state) => IssueDetailScreen(ticketNo: state.pathParameters['ticketNo']!),

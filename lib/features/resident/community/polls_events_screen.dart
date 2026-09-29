@@ -90,12 +90,37 @@ class _PollCard extends ConsumerStatefulWidget {
 }
 
 class _PollCardState extends ConsumerState<_PollCard> {
-  bool _voted = false;
+  bool _locallyVoted = false;
   Map<String, dynamic>? _results;
+  bool _resultsLoading = false;
   String? _selected;
   bool _loading = false;
 
   bool get _closed => DateTime.tryParse(widget.poll['end_at'] as String? ?? '')?.isBefore(DateTime.now()) ?? false;
+  // Derived from the fetched poll every build, not captured once — same staleness
+  // bug class as the notices read-state: this tab's screen never gets disposed
+  // while logged in, so a one-time-initialized flag would never reflect a vote
+  // that was actually cast in an earlier session.
+  bool get _hasVoted => widget.poll['has_voted'] == true || _locallyVoted;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_hasVoted || _closed) _loadResults();
+  }
+
+  Future<void> _loadResults() async {
+    if (_resultsLoading || _results != null) return;
+    setState(() => _resultsLoading = true);
+    try {
+      final results = await ref.read(communityRepositoryProvider).pollResults(widget.poll['id'] as int);
+      if (mounted) setState(() => _results = results);
+    } catch (_) {
+      // Non-critical — the card still shows the question even if results fail to load.
+    } finally {
+      if (mounted) setState(() => _resultsLoading = false);
+    }
+  }
 
   Future<void> _vote() async {
     if (_selected == null) return;
@@ -104,7 +129,7 @@ class _PollCardState extends ConsumerState<_PollCard> {
       await ref.read(communityRepositoryProvider).vote(widget.poll['id'] as int, [_selected!]);
       final results = await ref.read(communityRepositoryProvider).pollResults(widget.poll['id'] as int);
       setState(() {
-        _voted = true;
+        _locallyVoted = true;
         _results = results;
       });
     } catch (e) {
@@ -117,7 +142,22 @@ class _PollCardState extends ConsumerState<_PollCard> {
   @override
   Widget build(BuildContext context) {
     final options = (widget.poll['options'] as List).cast<Map<String, dynamic>>();
-    final showResults = _voted || _closed;
+    final showResults = _hasVoted || _closed;
+    if (showResults && _results == null) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: TnnColors.card, borderRadius: BorderRadius.circular(TnnRadius.md), border: Border.all(color: TnnColors.lineSoft)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.poll['question'] ?? '', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+            const SizedBox(height: 10),
+            const Center(child: SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))),
+          ],
+        ),
+      );
+    }
     final totalVotes = _results?.values.fold<int>(0, (sum, v) => sum + (v as int)) ?? 0;
 
     return Container(

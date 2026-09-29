@@ -13,6 +13,8 @@ class AccountTypeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
+      showBack: true,
+      onBack: () => context.go('/auth/phone'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

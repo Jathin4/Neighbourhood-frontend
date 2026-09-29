@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api/providers.dart';
 import 'auth_repository.dart';
@@ -38,6 +39,7 @@ class SessionController extends StateNotifier<SessionState> {
     try {
       final profile = await _repo.getMe();
       state = SessionState(status: SessionStatus.authenticated, role: role, profile: profile);
+      _registerFcmToken();
     } catch (_) {
       await storage.clear();
       state = const SessionState.unauthenticated();
@@ -47,6 +49,22 @@ class SessionController extends StateNotifier<SessionState> {
   Future<void> onVerified(Map<String, dynamic> user) async {
     state = SessionState(status: SessionStatus.authenticated, role: user['role'] as String, profile: null);
     await refreshProfile();
+    _registerFcmToken();
+  }
+
+  /// Best-effort: push registration should never block login or session bootstrap.
+  void _registerFcmToken() {
+    () async {
+      try {
+        final messaging = FirebaseMessaging.instance;
+        await messaging.requestPermission();
+        final token = await messaging.getToken();
+        if (token != null) await _repo.sendFcmToken(token);
+        messaging.onTokenRefresh.listen((t) => _repo.sendFcmToken(t));
+      } catch (_) {
+        // No Firebase config yet, permission denied, or offline — fine, not fatal.
+      }
+    }();
   }
 
   Future<void> refreshProfile() async {

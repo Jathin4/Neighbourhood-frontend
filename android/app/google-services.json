@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "17924795881",
+    "project_id": "trusted-neighbourhood-network",
+    "storage_bucket": "trusted-neighbourhood-network.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:17924795881:android:3d9875ce5a23bb02a6af78",
+        "android_client_info": {
+          "package_name": "com.tnn.tnn_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBvJN2PAt9iMOn-tdHjJEVrfzzp16ZHwk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

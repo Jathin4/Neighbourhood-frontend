@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/widgets/committee_responsibilities_section.dart';
 import '../../../core/widgets/states.dart';
 import '../../auth/session_controller.dart';
 import '../home_shell.dart';
@@ -42,6 +43,7 @@ class _DashboardBody extends ConsumerWidget {
     final unread = data['unread_notice_count'] as int? ?? 0;
     final openIssues = data['open_issue_count'] as int? ?? 0;
     final event = data['upcoming_event'] as Map<String, dynamic>?;
+    final capabilities = (profile?['committee_capabilities'] as List?)?.cast<String>() ?? const [];
     final hour = DateTime.now().hour;
     final greeting = hour < 12 ? 'Good morning' : (hour < 17 ? 'Good afternoon' : 'Good evening');
 
@@ -49,9 +51,11 @@ class _DashboardBody extends ConsumerWidget {
       padding: EdgeInsets.zero,
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 22),
           decoration: const BoxDecoration(color: TnnColors.ink, borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20))),
-          child: Row(
+          child: SafeArea(
+            bottom: false,
+            child: Row(
             children: [
               Expanded(
                 child: Column(
@@ -65,15 +69,20 @@ class _DashboardBody extends ConsumerWidget {
                   ],
                 ),
               ),
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: TnnColors.gold,
-                child: Text(
-                  ((data['resident_name'] as String?)?.isNotEmpty == true ? (data['resident_name'] as String)[0] : '?'),
-                  style: const TextStyle(color: TnnColors.ink, fontWeight: FontWeight.w700),
+              InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => ref.read(residentTabIndexProvider.notifier).state = 4,
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: TnnColors.gold,
+                  child: Text(
+                    ((data['resident_name'] as String?)?.isNotEmpty == true ? (data['resident_name'] as String)[0] : '?'),
+                    style: const TextStyle(color: TnnColors.ink, fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ],
+            ),
           ),
         ),
         if (critical != null)
@@ -85,7 +94,7 @@ class _DashboardBody extends ConsumerWidget {
                 padding: const EdgeInsets.all(13),
                 decoration: BoxDecoration(
                   color: TnnColors.statusCriticalBg,
-                  border: Border.all(color: const Color(0xFFEAD0C4)),
+                  border: Border.all(color: const Color(0xFFD9A784)),
                   borderRadius: BorderRadius.circular(TnnRadius.md),
                 ),
                 child: Row(
@@ -110,21 +119,23 @@ class _DashboardBody extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
           child: GridView.count(
-            crossAxisCount: 4,
+            crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
-            childAspectRatio: 0.85,
+            childAspectRatio: 2.2,
             children: [
-              _QuickLink(icon: Icons.description_outlined, label: 'Notices', onTap: () => ref.read(residentTabIndexProvider.notifier).state = 1),
-              _QuickLink(icon: Icons.warning_amber_outlined, label: 'Report issue', onTap: () => ref.read(residentTabIndexProvider.notifier).state = 2),
-              _QuickLink(icon: Icons.build_outlined, label: 'Services', onTap: () => ref.read(residentTabIndexProvider.notifier).state = 3),
               _QuickLink(icon: Icons.groups_outlined, label: 'Directory', onTap: () => context.push('/directory')),
               _QuickLink(icon: Icons.poll_outlined, label: 'Polls & Events', onTap: () => context.push('/community/polls-events')),
             ],
           ),
         ),
+        if (capabilities.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: CommitteeResponsibilitiesSection(capabilities: capabilities, communityId: community?['id'] as int?),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
           child: Column(
@@ -171,13 +182,12 @@ class _QuickLink extends StatelessWidget {
       borderRadius: BorderRadius.circular(TnnRadius.lg),
       child: Container(
         decoration: BoxDecoration(color: TnnColors.card, border: Border.all(color: TnnColors.lineSoft), borderRadius: BorderRadius.circular(TnnRadius.lg)),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        child: Row(
           children: [
             Icon(icon, size: 20, color: TnnColors.ink),
-            const SizedBox(height: 7),
-            Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500)),
+            const SizedBox(width: 10),
+            Expanded(child: Text(label, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500))),
           ],
         ),
       ),

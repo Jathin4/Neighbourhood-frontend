@@ -27,9 +27,9 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
 
   Future<void> _sendOtp() async {
     final typed = _controller.text.replaceAll(' ', '').trim();
-    if (typed.length < 10) {
-      setState(() => _phoneError = 'Enter a valid mobile number');
-      showTnnSnackBar(context, 'Enter a valid mobile number', isError: true);
+    if (typed.length != 10) {
+      setState(() => _phoneError = 'Enter a valid 10-digit mobile number');
+      showTnnSnackBar(context, 'Enter a valid 10-digit mobile number', isError: true);
       return;
     }
     final phone = toStoredPhone(typed);
@@ -66,12 +66,13 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
           TextField(
             controller: _controller,
             keyboardType: TextInputType.phone,
+            maxLength: 10,
             style: const TextStyle(color: Colors.white, fontSize: 15),
             onChanged: (_) {
               if (_phoneError != null) setState(() => _phoneError = null);
             },
             decoration: authFieldDecoration('', errorText: _phoneError)
-                .copyWith(label: null, hintText: '98480 XXXXX', hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4))),
+                .copyWith(label: null, hintText: '98480 XXXXX', hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)), counterText: ''),
           ),
           const Spacer(),
           SizedBox(

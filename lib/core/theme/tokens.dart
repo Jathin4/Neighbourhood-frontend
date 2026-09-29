@@ -24,7 +24,7 @@ class TnnColors {
   static const statusPendingFg = goldDeep;
   static const statusSuccessBg = Color(0xFFE8F1EA);
   static const statusSuccessFg = leaf;
-  static const statusCriticalBg = Color(0xFFFBEFE9);
+  static const statusCriticalBg = Color(0xFFF0CBB6);
   static const statusCriticalFg = brick;
 }
 

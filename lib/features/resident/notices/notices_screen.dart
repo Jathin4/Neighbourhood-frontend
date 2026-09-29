@@ -48,12 +48,18 @@ class _NoticeCard extends ConsumerStatefulWidget {
 
 class _NoticeCardState extends ConsumerState<_NoticeCard> {
   bool _open = false;
-  late bool _isRead = widget.notice['is_read'] == true;
+  bool _locallyRead = false;
+
+  // Derived fresh on every build instead of captured once — notices tabs live
+  // inside an IndexedStack that never disposes, so a `late`-initialized copy
+  // of is_read would go stale after the first fetch and never update again
+  // (e.g. after a pull-to-refresh, or once the list is refetched elsewhere).
+  bool get _isRead => widget.notice['is_read'] == true || _locallyRead;
 
   Future<void> _toggle() async {
     setState(() => _open = !_open);
     if (_open && !_isRead) {
-      setState(() => _isRead = true);
+      setState(() => _locallyRead = true);
       try {
         await ref.read(residentRepositoryProvider).markNoticeRead(widget.notice['id'] as int);
       } catch (_) {

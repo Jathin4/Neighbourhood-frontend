@@ -42,6 +42,14 @@ class AuthRepository {
     await api.post('/residents/membership-requests', data: {'community_id': communityId, 'method': 'admin-approval'});
   }
 
+  Future<void> changePhone(String newPhone, String otp) async {
+    await api.post('/auth/change-phone', data: {'new_phone': newPhone, 'otp': otp});
+  }
+
+  Future<void> sendFcmToken(String fcmToken) async {
+    await api.post('/auth/fcm-token', data: {'fcm_token': fcmToken});
+  }
+
   Future<void> logout() async {
     try {
       await api.post('/auth/logout');

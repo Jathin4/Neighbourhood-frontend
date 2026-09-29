@@ -13,7 +13,11 @@ const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: _
 class ApiClient {
   final AuthStorage authStorage;
   late final Dio _dio;
-  bool _isRefreshing = false;
+  // Shared by every concurrent 401 — without this, only the first of several
+  // requests that expire around the same time gets refreshed-and-retried; the
+  // others would previously see !_isRefreshing already false and fail outright
+  // instead of waiting for the in-flight refresh and retrying with its result.
+  Future<bool>? _refreshFuture;
 
   ApiClient({required this.authStorage}) {
     _dio = Dio(BaseOptions(baseUrl: apiBaseUrl, connectTimeout: const Duration(seconds: 12), receiveTimeout: const Duration(seconds: 12)));
@@ -30,17 +34,16 @@ class ApiClient {
     final status = err.response?.statusCode;
     final path = err.requestOptions.path;
 
-    if (status == 401 && !_isRefreshing && path != '/auth/token/refresh' && path != '/auth/otp/verify') {
-      _isRefreshing = true;
+    if (status == 401 && path != '/auth/token/refresh' && path != '/auth/otp/verify') {
+      final refreshFuture = _refreshFuture ??= _tryRefresh().whenComplete(() => _refreshFuture = null);
       try {
-        final refreshed = await _tryRefresh();
-        _isRefreshing = false;
+        final refreshed = await refreshFuture;
         if (refreshed) {
           final clone = await _dio.fetch(err.requestOptions);
           return handler.resolve(clone);
         }
       } catch (_) {
-        _isRefreshing = false;
+        // Fall through — original error is reported below.
       }
     }
     handler.next(err);

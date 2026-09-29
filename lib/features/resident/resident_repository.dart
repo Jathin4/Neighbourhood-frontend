@@ -48,6 +48,22 @@ class ResidentRepository {
     return (data['items'] as List).cast<Map<String, dynamic>>();
   }
 
+  Future<List<Map<String, dynamic>>> getNotificationPreferences() async {
+    final data = await api.get('/notifications/preferences');
+    return (data as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<void> updateNotificationPreference({required String channel, required String category, required bool enabled}) async {
+    await api.patch('/notifications/preferences', data: {'channel': channel, 'category': category, 'enabled': enabled});
+  }
+
+  Future<void> updateProfile({String? fullName, String? householdRelationship}) async {
+    await api.patch('/residents/me', data: {
+      if (fullName != null) 'full_name': fullName,
+      if (householdRelationship != null) 'household_relationship': householdRelationship,
+    });
+  }
+
   Future<void> updatePrivacy({bool? phoneVisible, bool? emailVisible}) async {
     await api.patch('/residents/me/privacy', data: {
       if (phoneVisible != null) 'phone_visible': phoneVisible,
